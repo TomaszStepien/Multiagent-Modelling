@@ -41,12 +41,6 @@ for S in S_range
         if v > best_v
             println("S: ", S, "\t", "s: ", s, "\t", "avg_daily_profit: ", v)
             best_v = v
-            best_s = s
-            best_S = S
         end
     end
 end
-
-println(best_S)
-println(best_s)
-println(best_v)
