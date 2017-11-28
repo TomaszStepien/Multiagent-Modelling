@@ -29,23 +29,22 @@ end
 
 # now we can optimize parameters S and s
 # first lets define the search range
-S_range = 1:1:1000
-s_range = 0:1:1000
+S_range = 100:1:300
+s_range = 0:1:100
 
 # then we can search for S, s
 best_v = 0.0
-tic()
+
 for S in S_range
     for s in s_range
-        v = simulateManyRuns(10_000, 10_000, S, s)
+        v = simulateManyRuns(100, 100, s, S)
         if v > best_v
-            best_v = v
-            best_S = S
-            best_s = s
+            println("S: ", S, "\t", "s: ", s, "\t", "avg_daily_profit: ", v)
         end
     end
 end
-tac()
+
 println(best_S)
 println(best_s)
 println(best_v)
+
