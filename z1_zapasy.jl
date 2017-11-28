@@ -1,10 +1,12 @@
 using Distributions
 
-function simulateOneRun(m, s, S)
+
+function simulateOneRun(m::Int64, s, S)
+    # simulates m days and returns average daily profit
     pd = Poisson(20)
     h, c = 0.1, 2.0 # storage cost & sale price
     p = 0.5 # probability of delivery
-    K, k = 40.0, 1.0 # fixed and ariable order cost
+    K, k = 40.0, 1.0 # fixed and variable order cost
     Xj, Yj = S, 0.0 # Stock in the morning and in the evening
     profit = 0.0 # cumulated profit
     for j in 1:m
@@ -20,7 +22,30 @@ function simulateOneRun(m, s, S)
     profit / m
 end
 
-
-for S in [190, 200.0, 210.0]
-    println(S, "\t", @time simulateOneRun(10_000_000, 100.0, S))
+function simulateManyRuns(n::Int64, m::Int64, s, S)
+    # runs n simulations defined in simulateOneRun
+    mean((simulateOneRun(m::Int64, s, S) for i in 1:1:n))
 end
+
+# now we can optimize parameters S and s
+# first lets define the search range
+S_range = 1:1:1000
+s_range = 0:1:1000
+
+# then we can search for S, s
+best_v = 0.0
+tic()
+for S in S_range
+    for s in s_range
+        v = simulateManyRuns(10_000, 10_000, S, s)
+        if v > best_v
+            best_v = v
+            best_S = S
+            best_s = s
+        end
+    end
+end
+tac()
+println(best_S)
+println(best_s)
+println(best_v)
