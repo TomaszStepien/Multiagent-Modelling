@@ -6,6 +6,7 @@
 # 3. Compare their performance.
 # see below
 # 4. Generalize to n dimensions
+# see below
 
 function d1(x1, y1, x2, y2)
     minimum((x1-x2+u1)^2+(y1-y2+u2)^2 for u1 in [-1, 0, 1], u2 in [-1, 0, 1])
