@@ -150,7 +150,7 @@ println(max_profit)
 # rozwiazanie analityczne mozna wyznaczyc wykorzystujac wzory podane w
 #  artykule na stronie 9
 function scarf_maximin_salvage(price::Real,cost::Real, salvage::Real,dist::Distributions.Any)
-    cond = (cost-salvage)/price * (1 + var(dist)/mean(dist)^2)
+    cond = (cost-salvage)/(price-salvage) * (1 + var(dist)/mean(dist)^2)
     if cond > 1
         return 0
     else
@@ -160,13 +160,14 @@ end
 
 # kod pozwalajacy na porownanie rozwiazania otrzymanego za pomoca metody maxi - min
 # i rozwiazania optymalnego
-x = linspace(1,2.5,99)
+x = linspace(0.01,0.99,99)
 y = zeros(length(x))
 z = zeros(length(x))
 for i = 1:length(x)
-    cost = x[i]
-    y[i] = mean(profits_salvage(price,cost,dist,optimal_quantity_salvage(price,cost,salvage,dist),cost/2,100000))
-    z[i] = mean(profits_salvage(price,cost,dist,scarf_maximin_salvage(price,cost,salvage,dist),cost/2,100000))
+    cost = (1-x[i])*price
+    salvage = (1-x[i])*cost
+    y[i] = mean(profits_salvage(price,cost,dist,optimal_quantity_salvage(price,cost,salvage,dist),salvage,100000))
+    z[i] = mean(profits_salvage(price,cost,dist,scarf_maximin_salvage(price,cost,salvage,dist),salvage,100000))
 end
 
 # 3) Zaimplementować kod, który wyznacza rozwiązanie problemu gazeciarza oparte
