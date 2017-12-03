@@ -89,7 +89,8 @@ function scarf_maximin(price::Real,cost::Real,dist::Distributions.Any)
     end
 end
 
-#kod pozwalajacy na porownanie rozwiazania otrzymanego za pomoca metody maxi - min i rozwiazania optymalnego
+# kod pozwalajacy na porownanie rozwiazania otrzymanego za pomoca metody maxi - min
+# i rozwiazania optymalnego
 x = linspace(0.01,0.99,99)
 y = zeros(length(x))
 z = zeros(length(x))
@@ -112,7 +113,7 @@ function profits_salvage(price::Real,
     x = zeros(0)
     for i = 1:iter
         D = rand(dist)
-        append!(x, price*min(quantity, D) - cost*quantity + salvage*max(0, quantity - D)) 
+        append!(x, price*min(quantity, D) - cost*quantity + salvage*max(0, quantity - D))
     end
 
     x
@@ -129,7 +130,7 @@ optimal_quantity_salvage(price::Real,
 # kod, ktory oblicza zysk dla roznych zamowionych ilosci dobr
 x = linspace(10.0,300.0,291)
 y = zeros(length(x))
-salvage = 0.5
+salvage = 1
 for i = 1:length(x)
     y[i] = mean(profits_salvage(price,cost,dist,x[i], salvage, 100000))
     println(y[i])
@@ -143,3 +144,67 @@ println(optimal_analitic)
 
 max_profit = mean(profits(price,cost,dist,optimal_analitic,10000000))
 println(max_profit)
+
+# 2) Zaimplementować przedstawione na zajęciach rozwiązanie mini – max (Scarf 1958)
+
+# rozwiazanie analityczne mozna wyznaczyc wykorzystujac wzory podane w
+#  artykule na stronie 9
+function scarf_maximin_salvage(price::Real,cost::Real, salvage::Real,dist::Distributions.Any)
+    cond = (cost-salvage)/price * (1 + var(dist)/mean(dist)^2)
+    if cond > 1
+        return 0
+    else
+        return mean(dist) + std(dist)*f((cost-salvage)/(price-salvage))
+    end
+end
+
+# kod pozwalajacy na porownanie rozwiazania otrzymanego za pomoca metody maxi - min
+# i rozwiazania optymalnego
+x = linspace(1,2.5,99)
+y = zeros(length(x))
+z = zeros(length(x))
+for i = 1:length(x)
+    cost = x[i]
+    y[i] = mean(profits_salvage(price,cost,dist,optimal_quantity_salvage(price,cost,salvage,dist),cost/2,100000))
+    z[i] = mean(profits_salvage(price,cost,dist,scarf_maximin_salvage(price,cost,salvage,dist),cost/2,100000))
+end
+
+# 3) Zaimplementować kod, który wyznacza rozwiązanie problemu gazeciarza oparte
+# na kryterium Savage’a (Perakis i Roels 2008)
+
+# istnieje wiele rozwiazan problemu w zaleznosci od znanych parametrow rozkladu
+
+# a) range
+function optimal_quantity_savage_range(price, cost, salvage, dist)
+    β = (cost - salvage)/(price - salvage)
+end
+
+function optimal_quantity_savage_mean(price, cost, salvage, dist)
+    β = (cost - salvage)/(price - salvage)
+end
+
+function optimal_quantity_savage_mean_median(price, cost, salvage, dist)
+    β = (cost - salvage)/(price - salvage)
+end
+
+function optimal_quantity_savage_mean_symmetry(price, cost, salvage, dist)
+    β = (cost - salvage)/(price - salvage)
+end
+
+function optimal_quantity_savage_unimodality_mode_range(price, cost, salvage, dist)
+    β = (cost - salvage)/(price - salvage)
+end
+
+function optimal_quantity_savage_unimodality_mode_median(price, cost, salvage, dist)
+    β = (cost - salvage)/(price - salvage)
+end
+
+function optimal_quantity_savage_mean_unimodality_symmetry(price, cost, salvage, dist)
+    β = (cost - salvage)/(price - salvage)
+end
+
+function optimal_quantity_savage_mean_variance(price, cost, salvage, dist)
+    β = (cost - salvage)/(price - salvage)
+end
+# 4) Porównać oba proponowane rozwiązania, uwzględniając przy tym rozwiązanie
+# optymalne przy znanym rozkładzie popytu
