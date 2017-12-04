@@ -173,39 +173,170 @@ end
 # 3) Zaimplementować kod, który wyznacza rozwiązanie problemu gazeciarza oparte
 # na kryterium Savage’a (Perakis i Roels 2008)
 
-# istnieje wiele rozwiazan problemu w zaleznosci od znanych parametrow rozkladu
+# istnieje wiele metod uzyskania rozwiazania analitycznego
+#  problemu w zaleznosci od znanych parametrow rozkladu
 
-# a) range
-function optimal_quantity_savage_range(price, cost, salvage, dist)
+# zdefiniujmy funkcje wyznaczajace optymalna wielkosc zamowienia dla kazdego
+# przypadku omawianego w artykule
+function optimal_quantity_savage_range(price::Real,
+                                       cost::Real,
+                                       salvage::Real,
+                                       UPPER::Real,
+                                       LOWER::Real)
     β = (cost - salvage)/(price - salvage)
+    return β*LOWER + (1-β)*UPPER
 end
 
-function optimal_quantity_savage_mean(price, cost, salvage, dist)
+function optimal_quantity_savage_mean(price::Real,
+                                      cost::Real,
+                                      salvage::Real,
+                                      MEAN::Real)
     β = (cost - salvage)/(price - salvage)
+    if β >= 0.5
+        return MEAN/(4*β)
+    else
+        return MEAN*(1-β)
+    end
 end
 
-function optimal_quantity_savage_mean_median(price, cost, salvage, dist)
+function optimal_quantity_savage_mean_median(price::Real,
+                                             cost::Real,
+                                             salvage::Real,
+                                             MEAN::Real,
+                                             MEDIAN::Real)
     β = (cost - salvage)/(price - salvage)
+    if MEAN == MEDIAN
+        if β >= 0.25
+            return 2 * (1 - β) * MEAN
+        else
+            return MEAN + (MEAN/(8*β))
+        end
+    else
+        if β >= 0.5
+            if MEAN >= MEDIAN
+                2*MEDIAN*(1-β)
+            elseif β >= 0.75
+                2*(1-β)*(2*MEAN-MEDIAN)
+            elseif β >= 0.25 + (MEAN/(2*MEDIAN))
+                return (2*MEAN-MEDIAN)/(4*(2*β-1))
+            else
+                return (2*MEDIAN)*((MEAN - β*MEDIAN)/(2*MEAN - MEDIAN))
+            end
+        else
+            if β >= 0.25
+                return 2*MEAN + 2*B*(MEDIAN - 2*MEAN)
+            else
+                return MEDIAN + (2*MEAN-MEDIAN)/(8*β)
+            end
+        end
+    end
 end
 
-function optimal_quantity_savage_mean_symmetry(price, cost, salvage, dist)
+function optimal_quantity_savage_mean_symmetry(price::Real,
+                                               cost::Real,
+                                               salvage::Real,
+                                               MEAN::Real)
     β = (cost - salvage)/(price - salvage)
+    return 2 * MEAN * (1 - β)
+
 end
 
-function optimal_quantity_savage_unimodality_mode_range(price, cost, salvage, dist)
+function optimal_quantity_savage_unimodality_mode_range(price::Real,
+                                                        cost::Real,
+                                                        salvage::Real,
+                                                        MODE::Real,
+                                                        UPPER::Real,
+                                                        LOWER::Real)
     β = (cost - salvage)/(price - salvage)
+    if MEDIAN*(1 - 2*(β)*(1-β)) >= (β^2)*LOWER + ((1-β)^2)*UPPER
+        return LOWER + sqrt((MEDIAN-LOWER)*(1-β)*(UPPER*(1-β)-LOWER*(1+β)+2*β*MEDIAN))
+    else
+        return UPPER - sqrt(β*(UPPER - MEDIAN)(UPPER*(2 - β)-(β * LOWER)-2*MEDIAN*(1-β)))
+    end
 end
 
-function optimal_quantity_savage_unimodality_mode_median(price, cost, salvage, dist)
+function optimal_quantity_savage_unimodality_mode_median(price::Real,
+                                                         cost::Real,
+                                                         salvage::Real,
+                                                         MODE::Real,
+                                                         MEDIAN::Real)
     β = (cost - salvage)/(price - salvage)
+    if MODE == MEDIAN
+        return 2*MODE*sqrt(β*(1-β))
+    else
+        if MEDIAN < MODE && 1 - (MODE/(2*MEDIAN)) <= β <= 0.5
+            MEDIAN + (1 - 2*β)*sqrt(MEDIAN*(MODE - MEDIAN))
+        elseif MEDIAN < MODE && β >= 0.5
+            2 * MEDIAN * sqrt(β*(1-β))
+        elseif MODE < MEDIAN < MODE*((8*β^2-12*β+5)/(4*(β-1)^2)) && β >= 0.5
+            2*sqrt((1-β)*MODE*(2*β*MODE-β*MEDIAN + MEDIAN - MODE))
+        elseif MEDIAN >= MODE*((8*β^2-12*β+5)/(4*(β-1)^2)) && β >= 0.5
+            MEDIAN - sqrt((MEDIAN - MODE)*(2*β-1)(4*β*MODE-2*β*MEDIAN-4*MODE+3*MEDIAN))
+        else
+            return NaN
+        end
+    end
 end
 
-function optimal_quantity_savage_mean_unimodality_symmetry(price, cost, salvage, dist)
+function optimal_quantity_savage_mean_unimodality_symmetry(price::Real,
+                                                           cost::Real,
+                                                           salvage::Real,
+                                                           MEAN::Real)
     β = (cost - salvage)/(price - salvage)
+    if β >= 0.5
+        return 2*MEAN*sqrt(β*(1-β))
+    else
+        return 2*MEAN*(1-sqrt(β*(1-β)))
+    end
 end
 
-function optimal_quantity_savage_mean_variance(price, cost, salvage, dist)
+function optimal_quantity_savage_mean_variance(price::Real,
+                                               cost::Real,
+                                               salvage::Real,
+                                               MEAN::Real,
+                                               VARIANCE::Real)
     β = (cost - salvage)/(price - salvage)
+    if sqrt(VARIANCE)/MEAN <= sqrt(1-β)
+        return maximum(0, MEAN + 0.4 * sqrt(VARIANCE)*(1 - 2*β)/sqrt(β*(1-β)))
+    else
+        return NaN
+    end
 end
-# 4) Porównać oba proponowane rozwiązania, uwzględniając przy tym rozwiązanie
-# optymalne przy znanym rozkładzie popytu
+
+#
+
+# nastepnie zdefiniujmy funkcje matke, ktora zwroci odpowiedni wynik
+function optimal_quantity_savage(price::Real,
+                                 cost::Real,
+                                 salvage::Real;
+                                 MEAN::Real = NaN,
+                                 VARIANCE::Real = NaN,
+                                 MODE::Real = NaN,
+                                 MEDIAN::Real = NaN,
+                                 SYMMETRY::Bool = false,
+                                 UNIMODALITY::Bool = false,
+                                 UPPER::Real = NaN,
+                                 LOWER::Real = NaN)
+    if !isnan(MEAN) && !isnan(VARIANCE)
+        return optimal_quantity_savage_mean_variance(price, cost, salvage, MEAN, VARIANCE)
+    elseif !isnan(MEAN) && UNIMODALITY && SYMMETRY
+        return optimal_quantity_savage_mean_unimodality_symmetry(price, cost, salvage, MEAN)
+    elseif !isnan(MEAN) && !isnan(MEDIAN)
+        return optimal_quantity_savage_mean_median(price, cost, salvage, MEAN, MEDIAN)
+    elseif !isnan(MEAN) && SYMMETRY
+        return optimal_quantity_savage_mean_symmetry(price, cost, salvage, MEAN)
+    elseif !isnan(MEAN)
+        return optimal_quantity_savage_mean(price, cost, salvage, MEAN)
+    elseif UNIMODALITY && !isnan(MODE) && !isnan(MEDIAN)
+        return optimal_quantity_savage_unimodality_mode_median(price, cost, salvage, MODE, MEDIAN)
+    elseif UNIMODALITY && !isnan(MODE) && !isnan(UPPER) && !isnan(LOWER)
+        return optimal_quantity_savage_unimodality_mode_range(price, cost, salvage, MODE, UPPER, LOWER)
+    else
+        return optimal_quantity_savage_range(price, cost, salvage, UPPER, LOWER)
+    end
+end
+
+optimal_quantity_savage(price, cost, salvage, UPPER = 100, LOWER = 0)
+
+# 4) Porownac oba proponowane rozwiazania, uwzgledniajac przy tym rozwiazanie
+# optymalne przy znanym rozkladzie popytu
