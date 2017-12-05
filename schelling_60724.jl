@@ -240,6 +240,7 @@ legend(["results_homo", "results_hetero"])
 # tej symulacji wskaznik segregacji dla populacji homogenicznej okazal sie wyzszy
 
 # 4. Zmienic sasiedztwo Moore'a na sasiedztwo von Neumanna
+
 # w tym celu trzeba zmienic funkcje check_similarity
 function check_similarity_neuman(agent,field, dim)
     same_color = 0
@@ -338,3 +339,6 @@ title("porownanie wersji Moora i Von Neumanna")
 xlabel("similar_wanted")
 ylabel("pct_similar")
 legend(["results_moore", "results_neuman"])
+
+# widzimy ze dla wiekszosci wartosci parametru similar_wanted sasiedztwo Von Neumanna
+# skutkuje wiekszym stopniem segregacji
