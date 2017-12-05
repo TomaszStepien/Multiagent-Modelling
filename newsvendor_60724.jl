@@ -1,9 +1,12 @@
 # rozwiazanie pracy domowej pod kodem z zajec
 
 using Distributions
+using PyPlot
 
 price = 4.5
 cost = 2.5
+salvage = 1
+
 dist = Exponential(200.0)
 
 # kod funkcji, ktora wylicza wartosc zysku gazeciarza dla zadanego zamowienia
@@ -130,7 +133,7 @@ optimal_quantity_salvage(price::Real,
 # kod, ktory oblicza zysk dla roznych zamowionych ilosci dobr
 x = linspace(10.0,300.0,291)
 y = zeros(length(x))
-salvage = 1
+
 for i = 1:length(x)
     y[i] = mean(profits_salvage(price,cost,dist,x[i], salvage, 100000))
     println(y[i])
@@ -169,6 +172,8 @@ for i = 1:length(x)
     y[i] = mean(profits_salvage(price,cost,dist,optimal_quantity_salvage(price,cost,salvage,dist),salvage,100000))
     z[i] = mean(profits_salvage(price,cost,dist,scarf_maximin_salvage(price,cost,salvage,dist),salvage,100000))
 end
+
+plot(x,[y z])
 
 # 3) Zaimplementować kod, który wyznacza rozwiązanie problemu gazeciarza oparte
 # na kryterium Savage’a (Perakis i Roels 2008)
@@ -224,7 +229,7 @@ function optimal_quantity_savage_mean_median(price::Real,
             end
         else
             if β >= 0.25
-                return 2*MEAN + 2*B*(MEDIAN - 2*MEAN)
+                return 2*MEAN + 2*β*(MEDIAN - 2*MEAN)
             else
                 return MEDIAN + (2*MEAN-MEDIAN)/(8*β)
             end
@@ -296,7 +301,7 @@ function optimal_quantity_savage_mean_variance(price::Real,
                                                MEAN::Real,
                                                VARIANCE::Real)
     β = (cost - salvage)/(price - salvage)
-    if sqrt(VARIANCE)/MEAN <= sqrt(1-β)
+    if sqrt(VARIANCE)/MEAN <= sqrt(1-β) # w artykule nie jest sprecyzowane co dzieje sie w przeciwnym wypadku
         return maximum(0, MEAN + 0.4 * sqrt(VARIANCE)*(1 - 2*β)/sqrt(β*(1-β)))
     else
         return NaN
@@ -340,3 +345,18 @@ optimal_quantity_savage(price, cost, salvage, UPPER = 100, LOWER = 0)
 
 # 4) Porownac oba proponowane rozwiazania, uwzgledniajac przy tym rozwiazanie
 # optymalne przy znanym rozkladzie popytu
+
+x = linspace(0.01,0.99,99)
+y = zeros(length(x))
+z = zeros(length(x))
+s = zeros(length(x))
+for i = 1:length(x)
+    cost = (1-x[i])*price
+    salvage = (1-x[i])*cost
+    y[i] = mean(profits_salvage(price,cost,dist,optimal_quantity_salvage(price,cost,salvage,dist),salvage,100000))
+    z[i] = mean(profits_salvage(price,cost,dist,scarf_maximin_salvage(price,cost,salvage,dist),salvage,100000))
+    s[i] = mean(profits_salvage(price, cost, dist, optimal_quantity_savage(price, cost, salvage, MEAN=mean(dist), MEDIAN=median(dist)),salvage, 100000))
+    println(y[i], '\t', z[i], '\t', s[i])
+end
+
+plot(x,[y z s])
