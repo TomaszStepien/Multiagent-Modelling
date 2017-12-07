@@ -2,7 +2,7 @@
 # Pkg.update("StatsBase")
 #
 #
-# using PyPlot
+using PyPlot
 # using Distributions
 # using StatsBase
 
@@ -86,7 +86,7 @@ function get_sick(agent, map)
 end
 
 
-function go(;dim = 15, max_iter = 1000, n_agents = 20, delay = 0.01)
+function go(;dim = 15, max_iter = 150, n_agents = 20, delay = 0.01)
     # create map and agents list
     map = zeros(dim, dim)
     loc_x = collect(1:dim)
@@ -116,10 +116,15 @@ function go(;dim = 15, max_iter = 1000, n_agents = 20, delay = 0.01)
             get_sick(agent, map) && (infected += 1)
         end
         println(iteration,'\t' ,infected)
+        # save a plot of the map
+        ioff()
+        fig = figure()
+        imshow(map)
+        savefig("plots\\$(iteration).png")
+        close(fig)
         iteration += 1
     end
     return infected
 end
 
 go()
-
