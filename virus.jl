@@ -5,10 +5,10 @@ using PyPlot
 # workspace()
 
 # define our agent
-mutable struct Agent{L<:Integer, S<:Integer} # , I<:Float64
+mutable struct Agent{L<:Integer, S<:Integer, I<:Float64} #
     location::Tuple{L,L}
     sick::S
-    # immunity::I
+    immunity::I
 end
 
 # define how agents move
@@ -73,7 +73,7 @@ end
 function get_sick(agent, map)
     dim = size(map)[1]
     sick_neighbours = count_sick(agent, map)
-    if agent.sick == 1 && sick_neighbours >= 1
+    if agent.sick == 1 && sick_neighbours/8 >= agent.immunity
         agent.sick = 2
         map[agent.location[1], agent.location[2]] = 2
         return true
@@ -82,7 +82,7 @@ function get_sick(agent, map)
 end
 
 
-function go(;dim = 15, max_iter = 75, n_agents = 20, delay = 0.01)
+function go(;dim = 100, max_iter = 75, n_agents = 1000, delay = 0.01)
     # create map and agents list
     map = zeros(dim, dim)
     loc_x = collect(1:dim)
@@ -96,7 +96,7 @@ function go(;dim = 15, max_iter = 75, n_agents = 20, delay = 0.01)
             x = rand(loc_x)
             y = rand(loc_y)
         end
-        agent = Agent((x,y), rand([1,2]))
+        agent = Agent((x,y), rand([1,2]), 0.3)
         agents = vcat(agents,agent)
         map[x,y] = agent.sick
     end
