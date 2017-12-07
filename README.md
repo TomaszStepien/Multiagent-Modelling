@@ -11,5 +11,5 @@
   - location: krotka - współrzędne x i y 
   - sick: integer - 1 gdy zdrowy, 2 gdy chory
 
-- agenci poruszaja sie losowo o jedno pole na kazda iteracje w poziomie w pionie lub na ukos
-- agenci zarażają się gdy znajdą się gdy w sąsiedztwie (Moore) znajduje się przynajmniej jeden chory i pozostają chorzy do końca
+- agenci poruszają sie losowo o jedno pole w każdej iteracji w poziomie, w pionie lub na ukos
+- agenci zarażają się gdy w sąsiedztwie (Moore) znajdzie się przynajmniej jeden chory i pozostają chorzy do końca
