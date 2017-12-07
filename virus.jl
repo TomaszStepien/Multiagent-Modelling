@@ -1,12 +1,8 @@
-# Pkg.add("StatsBase")
-# Pkg.update("StatsBase")
-#
-#
+
 using PyPlot
 # using Distributions
-# using StatsBase
 
-workspace()
+# workspace()
 
 # define our agent
 mutable struct Agent{L<:Integer, S<:Integer} # , I<:Float64
@@ -86,7 +82,7 @@ function get_sick(agent, map)
 end
 
 
-function go(;dim = 15, max_iter = 150, n_agents = 20, delay = 0.01)
+function go(;dim = 15, max_iter = 75, n_agents = 20, delay = 0.01)
     # create map and agents list
     map = zeros(dim, dim)
     loc_x = collect(1:dim)
@@ -112,8 +108,8 @@ function go(;dim = 15, max_iter = 150, n_agents = 20, delay = 0.01)
     while iteration <= max_iter
         for agent in shuffle!(agents)
             old_location = agent.location
-            move(agent, map)
             get_sick(agent, map) && (infected += 1)
+            move(agent, map)
         end
         println(iteration,'\t' ,infected)
         # save a plot of the map
