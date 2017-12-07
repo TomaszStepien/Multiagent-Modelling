@@ -5,10 +5,11 @@ using PyPlot
 # workspace()
 
 # define our agent
-mutable struct Agent{L<:Integer, S<:Integer, I<:Float64} #
+mutable struct Agent{L<:Integer, S<:Integer, I<:Float64, V<:Bool}
     location::Tuple{L,L}
     sick::S
     immunity::I
+    vaccinated::V
 end
 
 # define how agents move
@@ -71,32 +72,47 @@ end
 
 # define how agents become sick
 function get_sick(agent, map)
-    dim = size(map)[1]
-    sick_neighbours = count_sick(agent, map)
-    if agent.sick == 1 && sick_neighbours/8 >= agent.immunity
-        agent.sick = 2
-        map[agent.location[1], agent.location[2]] = 2
-        return true
+    if agent.sick == 1
+        sick_neighbours = count_sick(agent, map)
+        virus_caught = (sick_neighbours/8)*(1 - agent.immunity)*(1-agent.vaccinated*0.3) > rand(Float64)
+        if virus_caught
+            agent.sick = 2
+            map[agent.location[1], agent.location[2]] = 2
+            return true
+        end
     end
     return false
 end
 
 
-function go(;dim = 100, max_iter = 75, n_agents = 1000, delay = 0.01)
+function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1, delay = 0.01)
     # create map and agents list
     map = zeros(dim, dim)
     loc_x = collect(1:dim)
     loc_y = collect(1:dim)
     agents = Any[]
+    n_healthy = floor(n_agents*(1-pct_sick))
+    n_sick = ceil(n_agents*pct_sick)
     # spawn agents
-    for n in 1:n_agents
+    for n in 1:n_healthy
         x = rand(loc_x)
         y = rand(loc_y)
         while map[x, y] != 0
             x = rand(loc_x)
             y = rand(loc_y)
         end
-        agent = Agent((x,y), rand([1,2]), 0.3)
+        agent = Agent((x,y), 1, 0.3, false)
+        agents = vcat(agents,agent)
+        map[x,y] = agent.sick
+    end
+    for n in 1:n_sick
+        x = rand(loc_x)
+        y = rand(loc_y)
+        while map[x, y] != 0
+            x = rand(loc_x)
+            y = rand(loc_y)
+        end
+        agent = Agent((x,y), 2, 0.3, false)
         agents = vcat(agents,agent)
         map[x,y] = agent.sick
     end
@@ -124,3 +140,8 @@ function go(;dim = 100, max_iter = 75, n_agents = 1000, delay = 0.01)
 end
 
 go()
+
+x = false
+print(x*3)
+
+pwd()
