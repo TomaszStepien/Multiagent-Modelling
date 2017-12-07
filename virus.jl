@@ -5,11 +5,12 @@ using PyPlot
 # workspace()
 
 # define our agent
-mutable struct Agent{L<:Integer, S<:Integer, I<:Float64, V<:Bool}
+mutable struct Agent{L<:Integer, S<:Integer, I<:Float64, V<:Bool, G<:Integer}
     location::Tuple{L,L}
     sick::S
     immunity::I
     vaccinated::V
+    generation::G
 end
 
 # define how agents move
@@ -74,10 +75,11 @@ end
 function get_sick(agent, map)
     if agent.sick == 1
         sick_neighbours = count_sick(agent, map)
-        virus_caught = (sick_neighbours/8)*(1 - agent.immunity)*(1-agent.vaccinated*0.3) > rand(Float64)
+        virus_caught = (sick_neighbours/8)*(1 - agent.immunity)*(1 - agent.vaccinated*0.3*(1/agent.generation)) > rand(Float64)
         if virus_caught
             agent.sick = 2
             map[agent.location[1], agent.location[2]] = 2
+            rand(Float64) > 0.95 && (agent.generation += 1)
             return true
         end
     end
@@ -101,7 +103,7 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1, delay = 0.
             x = rand(loc_x)
             y = rand(loc_y)
         end
-        agent = Agent((x,y), 1, 0.3, false)
+        agent = Agent((x,y), 1, 0.3, false, 1)
         agents = vcat(agents,agent)
         map[x,y] = agent.sick
     end
@@ -112,7 +114,7 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1, delay = 0.
             x = rand(loc_x)
             y = rand(loc_y)
         end
-        agent = Agent((x,y), 2, 0.3, false)
+        agent = Agent((x,y), 2, 0.3, false, 1)
         agents = vcat(agents,agent)
         map[x,y] = agent.sick
     end
@@ -120,7 +122,7 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1, delay = 0.
 
     # move agents
     iteration = 1
-    infected = 0 # keeps track of people who got sick during simulation
+    infected = 0 # keep track of people who got sick during simulation
     while iteration <= max_iter
         for agent in shuffle!(agents)
             old_location = agent.location
