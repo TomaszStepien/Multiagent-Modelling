@@ -2,15 +2,17 @@
 using PyPlot
 # using Distributions
 
-# workspace()
+workspace()
 
 # define our agent
-mutable struct Agent{L<:Integer, S<:Integer, I<:Float64, V<:Bool, G<:Integer}
+mutable struct Agent{L<:Integer, S<:Integer, I<:Float64, V<:Bool, G<:Integer, D<:Integer, W<:Bool}
     location::Tuple{L,L}
     sick::S
     immunity::I
     vaccinated::V
     generation::G
+    days_sick::D
+    was_sick::W
 end
 
 # define how agents move
@@ -73,7 +75,7 @@ end
 
 # define how agents become sick
 function get_sick(agent, map)
-    if agent.sick == 1
+    if agent.sick == 1 && !agent.was_sick
         sick_neighbours = count_sick(agent, map)
         virus_caught = (sick_neighbours/8)*(1 - agent.immunity)*(1 - agent.vaccinated*0.3*(1/agent.generation)) > rand(Float64)
         if virus_caught
@@ -86,6 +88,24 @@ function get_sick(agent, map)
     return false
 end
 
+function get_well(agent, map)
+    if agent.vaccinated
+        days_to_suffer = 7 + floor(3*agent.immunity)
+    else
+        days_to_suffer = 20 + floor(5*agent.immunity)
+    end
+    if agent.days_sick >= days_to_suffer
+        agent.sick = 1
+        agent.was_sick = true
+        map[agent.location[1], agent.location[2]] = 1
+    end
+end
+
+function suffer(agent)
+    if agent.sick == 2
+        agent.days_sick += 1
+    end
+end
 
 function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1, delay = 0.01)
     # create map and agents list
@@ -103,7 +123,7 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1, delay = 0.
             x = rand(loc_x)
             y = rand(loc_y)
         end
-        agent = Agent((x,y), 1, 0.3, false, 1)
+        agent = Agent((x,y), 1, 0.3, false, 1, 0, false)
         agents = vcat(agents,agent)
         map[x,y] = agent.sick
     end
@@ -114,7 +134,7 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1, delay = 0.
             x = rand(loc_x)
             y = rand(loc_y)
         end
-        agent = Agent((x,y), 2, 0.3, false, 1)
+        agent = Agent((x,y), 2, 0.3, false, 1, 0, true)
         agents = vcat(agents,agent)
         map[x,y] = agent.sick
     end
@@ -127,6 +147,8 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1, delay = 0.
         for agent in shuffle!(agents)
             old_location = agent.location
             get_sick(agent, map) && (infected += 1)
+            get_well(agent, map)
+            suffer(agent)
             move(agent, map)
         end
         println(iteration,'\t' ,infected)
@@ -143,7 +165,3 @@ end
 
 go()
 
-x = false
-print(x*3)
-
-pwd()
