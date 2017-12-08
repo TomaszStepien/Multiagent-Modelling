@@ -21,12 +21,16 @@ end
 function move(agent, map)
     x, y = agent.location
     dim = size(map)[1]
-    for dx in rand([-1,1]), dy in rand([-1,1])
-        if dim >= (x + dx) > 0 && dim >= (y + dy) > 0 && map[x + dx, y + dy] == 0
-            map[x, y] = 0
-            map[x + dx, y + dy] = agent.sick
-            agent.location = (x + dx, y + dy)
-        end
+    dx = rand(-1:1)
+    dy = rand(-1:1)
+    while dx == 0 && dy == 0
+        dx = rand(-1:1)
+        dy = rand(-1:1)
+    end
+    if dim >= (x + dx) > 0 && dim >= (y + dy) > 0 && map[x + dx, y + dy] == 0
+        map[x, y] = 0
+        map[x + dx, y + dy] = agent.sick
+        agent.location = (x + dx, y + dy)
     end
 end
 
