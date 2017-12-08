@@ -40,42 +40,43 @@ function count_sick(agent, map)
     sick_neighbours = 0
     x,y = agent.location
     if x == 1 && y == 1 # corner
-        for dx in 1, dy in 1
+        for dx in 0:1, dy in 0:1
             map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
         end
     elseif x == 1 && y == dim # corner
-        for dx in 1, dy in -1
+        for dx in 0:1, dy in -1:0
             map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
         end
     elseif x == dim && y == 1 # corner
-        for dx in -1, dy in 1
+        for dx in -1:0, dy in 0:1
             map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
         end
     elseif x == dim && y == dim # corner
-        for dx in -1, dy in -1
+        for dx in -1:0, dy in -1:0
             map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
         end
     elseif x == dim # side
-        for dx in -1, dy in -1:2:1
+        for dx in -1:0, dy in -1:1
             map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
         end
     elseif x == 1 # side
-        for dx in 1, dy in -1:2:1
+        for dx in 0:1, dy in -1:1
             map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
         end
     elseif y == dim # side
-        for dx in -1:2:1, dy in -1
+        for dx in -1:1, dy in -1:0
             map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
         end
     elseif y == 1 # side
-        for dx in -1:2:1, dy in 1
+        for dx in -1:1, dy in 0:1
             map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
         end
     else # interior
-        for dx in -1:2:1, dy in -1:2:1
+        for dx in -1:1, dy in -1:1
             map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
         end
     end
+
     return sick_neighbours
 end
 
@@ -185,9 +186,8 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
     infected = 0 # keep track of people who got sick during simulation
     while iteration <= max_iter
         for agent in shuffle!(agents)
-            old_location = agent.location
-            get_sick(agent, map) && (infected += 1)
-            get_well(agent, map)
+            agent.sick == 1 &&  get_sick(agent, map) && (infected += 1)
+            agent.sick == 2 && get_well(agent, map)
             move(agent, map)
         end
 
