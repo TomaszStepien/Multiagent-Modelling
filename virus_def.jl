@@ -7,14 +7,14 @@ mutable struct Agent{L<:Integer,
                      D<:Integer,
                      W<:Bool,
                      X<:Integer}
-    location::Tuple{L,L}
-    sick::S
-    immunity::I
-    vaccinated::V
-    generation::G
-    days_sick::D
-    was_sick::W
-    duration::X
+    location::Tuple{L,L} # x, y coordinates
+    sick::S              # 1 if healthy, 2 if sick
+    immunity::I          # float in range (0,1), higher means better
+    vaccinated::V        # if true, increases immunity and lowers duration
+    generation::G        # generation of the virus, increased by mutation
+    days_sick::D         # keeps track of sick days
+    was_sick::W          # if true, cannot catch virus again
+    duration::X          # days it takes to recover
 end
 
 # define how agents move
