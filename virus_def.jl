@@ -66,14 +66,12 @@ end
 
 # define how agents become healthy again
 function get_well(agent, map)
-    if agent.sick == 2
-        if agent.days_sick >= agent.duration
-            agent.sick = 1
-            agent.was_sick = true
-            map[agent.location[1], agent.location[2]] = 1
-        end
-        agent.days_sick += 1
+    if agent.days_sick >= agent.duration
+        agent.sick = 1
+        agent.was_sick = true
+        map[agent.location[1], agent.location[2]] = 1
     end
+    agent.days_sick += 1
 end
 
 # if agent.vaccinated
