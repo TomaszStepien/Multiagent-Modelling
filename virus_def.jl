@@ -39,42 +39,11 @@ function count_sick(agent, map)
     dim = size(map)[1]
     sick_neighbours = 0
     x,y = agent.location
-    if x == 1 && y == 1 # corner
-        for dx in 0:1, dy in 0:1
-            map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
-        end
-    elseif x == 1 && y == dim # corner
-        for dx in 0:1, dy in -1:0
-            map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
-        end
-    elseif x == dim && y == 1 # corner
-        for dx in -1:0, dy in 0:1
-            map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
-        end
-    elseif x == dim && y == dim # corner
-        for dx in -1:0, dy in -1:0
-            map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
-        end
-    elseif x == dim # side
-        for dx in -1:0, dy in -1:1
-            map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
-        end
-    elseif x == 1 # side
-        for dx in 0:1, dy in -1:1
-            map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
-        end
-    elseif y == dim # side
-        for dx in -1:1, dy in -1:0
-            map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
-        end
-    elseif y == 1 # side
-        for dx in -1:1, dy in 0:1
-            map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
-        end
-    else # interior
-        for dx in -1:1, dy in -1:1
-            map[x + dx, y + dy] == 2 && (sick_neighbours += 1)
-        end
+    for dx in -1:1, dy in -1:1
+        0 < x + dx <= dim &&
+         0 < y + dy <= dim &&
+         map[x + dx, y + dy] == 2 &&
+          (sick_neighbours += 1)
     end
 
     return sick_neighbours
