@@ -49,9 +49,8 @@ function count_sick(agent, map)
     return sick_neighbours
 end
 
-# define how agents become infected
+# define how agents become infected - triggered only for healthy agents
 function get_sick(agent, map)
-    if agent.sick == 1 && !agent.was_sick
         sick_neighbours = count_sick(agent, map)
         virus_caught = (sick_neighbours/8)*(1 - agent.immunity)*(1 - agent.vaccinated*0.3*(1/agent.generation)) > rand(Float64)
         if virus_caught
@@ -59,12 +58,12 @@ function get_sick(agent, map)
             map[agent.location[1], agent.location[2]] = 2
             rand(Float64) > 0.95 && (agent.generation += 1) # here the virus can mutate
             return true
+        else
+            return false
         end
-    end
-    return false
 end
 
-# define how agents become healthy again
+# define how agents become healthy again - triggered only for sick agents
 function get_well(agent, map)
     if agent.days_sick >= agent.duration
         agent.sick = 1
@@ -153,7 +152,7 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
     infected = 0 # keep track of people who got sick during simulation
     while iteration <= max_iter
         for agent in shuffle!(agents)
-            agent.sick == 1 &&  get_sick(agent, map) && (infected += 1)
+            agent.sick == 1 && !agent.was_sick && get_sick(agent, map) && (infected += 1)
             agent.sick == 2 && get_well(agent, map)
             move(agent, map)
         end
