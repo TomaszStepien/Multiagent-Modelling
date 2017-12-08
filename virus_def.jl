@@ -57,7 +57,7 @@ function get_sick(agent, map)
         if virus_caught
             agent.sick = 2
             map[agent.location[1], agent.location[2]] = 2
-            rand(Float64) > 0.95 && (agent.generation += 1)
+            rand(Float64) > 0.95 && (agent.generation += 1) # here the virus can mutate
             return true
         end
     end
