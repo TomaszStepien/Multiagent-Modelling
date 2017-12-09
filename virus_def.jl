@@ -33,6 +33,8 @@ function move(agent, map)
 end
 
 # define how infected people in the neighbourhood are counted
+# returns number of sick people in the neighbourhood and generation of disease 
+# from a randomly selected one
 function count_sick(agent, map)
     dim = size(map)[1]
     sick_neighbours = 0
