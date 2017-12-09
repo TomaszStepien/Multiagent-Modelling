@@ -107,3 +107,12 @@
 - vaccination_power - o ile % szczepionka zmniejsza ryzyko zachorowania
 - density - ile ludzi jest na mapie
 
+# elementy raportu
+1. Strona tytułowa: Zawiera nazwę organizacji, dla której budowany jest model, temat opracowania, sygnatura przedmiotu, nazwiska studentów, nr alb (w nawiasie zakres odpowiedzialności studenta: budowa modelu, an. wrażliwości, edycja raportu itp.).
+2. Podsumowanie: Wskazanie głównych wyników (również liczbowych) i wniosków z raportu – propozycji rozwiązania problemu wraz z krótkim uzasadnieniem. W podsumowaniu powinno używać się łatwego słownictwa nie zawierającego żargonu technicznego.
+3. Opis organizacji: Podsumowanie rodzaju działalności organizacji, rodzaj produktów/usług oferowanych klientom, wielkość organizacji, rodzaj rynku (monopol, doskonała konkurencja itp.), główni konkurenci.
+4. Opis problemu, który ma być analizowany metodą symulacyjną : Opis powinien zawierać cele modelowania, niezbędne założenia i ograniczenia analizy.
+5. Wyniki analizy : Liczby wraz z ich interpretacją. Czy rozwiązanie jest akceptowalne? Czy może być wdrożone w praktyce? Czy wynik jest zgodny z intuicją?
+6. Analiza wrażliwości : Analiza skutków zmiany kluczowych parametrów lub uchylenia niektórych założeń analizy.
+7. Wnioski i zalecenia : Jak wyniki analizy symulacyjnej mogą usprawnić działanie organizacji.
+8. Bibliografia
