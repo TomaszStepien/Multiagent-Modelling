@@ -3,15 +3,13 @@ mutable struct Agent{L<:Integer,
                      S<:Integer,
                      I<:Float64,
                      V<:Bool,
-                     G<:Integer,
                      D<:Integer,
                      W<:Bool,
                      X<:Integer}
     location::Tuple{L,L} # x, y coordinates
-    sick::S              # 1 if healthy, 2 if sick
+    sick::S              # 1 if healthy, > 1 if sick, increased by mutation
     immunity::I          # float in range (0,1), higher means better
     vaccinated::V        # if true, increases immunity and lowers duration
-    generation::G        # generation of the virus, increased by mutation
     days_sick::D         # keeps track of sick days
     was_sick::W          # if true, cannot catch virus again
     duration::X          # days it takes to recover
@@ -39,24 +37,28 @@ function count_sick(agent, map)
     dim = size(map)[1]
     sick_neighbours = 0
     x,y = agent.location
+    generations = zeros(0)
     for dx in -1:1, dy in -1:1
-        0 < x + dx <= dim &&
-         0 < y + dy <= dim &&
-         map[x + dx, y + dy] == 2 &&
+        if 0 < x + dx <= dim && 0 < y + dy <= dim && map[x + dx, y + dy] > 1
           (sick_neighbours += 1)
+          push!(generations, map[x + dx, y + dy])
+      end
     end
-
-    return sick_neighbours
+    if sick_neighbours > 0
+        return (sick_neighbours, rand(generations))
+    else
+        return (sick_neighbours, 1)
+    end
 end
 
 # define how agents become infected - triggered only for healthy agents
 function get_sick(agent, map)
-        sick_neighbours = count_sick(agent, map)
-        virus_caught = (sick_neighbours/8)*(1 - agent.immunity)*(1 - agent.vaccinated*0.3*(1/agent.generation)) > rand(Float64)
+        sick_neighbours, generation = count_sick(agent, map)
+        virus_caught = (sick_neighbours/8)*(1 - agent.immunity)*(1 - agent.vaccinated*0.3*(1/generation)) > rand(Float64)
         if virus_caught
-            agent.sick = 2
-            map[agent.location[1], agent.location[2]] = 2
-            rand(Float64) > 0.95 && (agent.generation += 1) # here the virus can mutate
+            rand(Float64) > 0.1 && (generation += 1)  # here mutation can happen
+            agent.sick = generation
+            map[agent.location[1], agent.location[2]] = generation
             return true
         else
             return false
@@ -102,7 +104,6 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
         sick = 1
         immunity = 0.3
         vaccine = false
-        generation = 1
         days_sick = 0
         was_sick = false
         disease_duration = 20
@@ -111,7 +112,6 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
                       sick,
                       immunity,
                       vaccine,
-                      generation,
                       days_sick,
                       was_sick,
                       disease_duration)
@@ -130,16 +130,14 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
         sick = 2
         immunity = 0.3
         vaccine = false
-        generation = 1
         days_sick = 0
-        was_sick = false
+        was_sick = true
         disease_duration = 20
 
         agent = Agent(location,
                       sick,
                       immunity,
                       vaccine,
-                      generation,
                       days_sick,
                       was_sick,
                       disease_duration)
@@ -153,7 +151,7 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
     while iteration <= max_iter
         for agent in shuffle!(agents)
             agent.sick == 1 && !agent.was_sick && get_sick(agent, map) && (infected += 1)
-            agent.sick == 2 && get_well(agent, map)
+            agent.sick > 1 && get_well(agent, map)
             move(agent, map)
         end
 
