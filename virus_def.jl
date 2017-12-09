@@ -33,7 +33,7 @@ function move(agent, map)
 end
 
 # define how infected people in the neighbourhood are counted
-# returns number of sick people in the neighbourhood and generation of disease 
+# returns number of sick people in the neighbourhood and generation of disease
 # from a randomly selected one
 function count_sick(agent, map)
     dim = size(map)[1]
@@ -54,11 +54,13 @@ function count_sick(agent, map)
 end
 
 # define how agents become infected - triggered only for healthy agents
-function get_sick(agent, map)
+function get_sick(agent, map, vaccine_power, mutation_chance)
         sick_neighbours, generation = count_sick(agent, map)
-        virus_caught = (sick_neighbours/8)*(1 - agent.immunity)*(1 - agent.vaccinated*0.3*(1/generation)) > rand(Float64)
+        virus_caught = (sick_neighbours/8)*
+                       (1 - agent.immunity)*
+                       (1 - agent.vaccinated*vaccine_power*(2/generation)) > rand(Float64)
         if virus_caught
-            rand(Float64) > 0.1 && (generation += 1)  # here mutation can happen
+            rand(Float64) < mutation_chance && (generation += 1)  # here mutation can happen
             agent.sick = generation
             map[agent.location[1], agent.location[2]] = generation
             return true
@@ -84,7 +86,14 @@ end
 # end
 
 # define
-function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
+function go(;dim = 20,
+             max_iter = 75,
+             n_agents = 100,
+             pct_sick = 0.1,
+             vaccine_power=0.3,
+             mutation_chance = 0.05,
+             vaccine_desire = 0.10,
+             default_duration = 20)
     # create map and list of agents
     map = zeros(dim, dim)
     loc_x = 1:dim
@@ -104,11 +113,15 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
         # AGENT IS BORN HERE - HEALTHY
         location = (x,y)
         sick = 1
-        immunity = 0.3
-        vaccine = false
+        immunity = rand(Float64)
+        if rand(Float64) < vaccine_desire
+            vaccine = true
+        else
+            vaccine = false
+        end
         days_sick = 0
         was_sick = false
-        disease_duration = 20
+        disease_duration = floor(Int, default_duration*(1-vaccine_power*vaccine*(2/sick))*(1-immunity))
 
         agent = Agent(location,
                       sick,
@@ -134,7 +147,7 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
         vaccine = false
         days_sick = 0
         was_sick = true
-        disease_duration = 20
+        disease_duration = floor(Int, default_duration*(1-vaccine_power*vaccine*(1/sick))*(1-immunity))
 
         agent = Agent(location,
                       sick,
@@ -152,7 +165,8 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
     infected = 0 # keep track of people who got sick during simulation
     while iteration <= max_iter
         for agent in shuffle!(agents)
-            agent.sick == 1 && !agent.was_sick && get_sick(agent, map) && (infected += 1)
+            agent.sick == 1 && !agent.was_sick &&
+                get_sick(agent, map, vaccine_power, mutation_chance) && (infected += 1)
             agent.sick > 1 && get_well(agent, map)
             move(agent, map)
         end
@@ -161,6 +175,7 @@ function go(;dim = 20, max_iter = 75, n_agents = 100, pct_sick = 0.1)
         ioff()
         fig = figure()
         imshow(map)
+        set_cmap("hot")
         savefig("plots\\$(iteration).png")
         close(fig)
 
