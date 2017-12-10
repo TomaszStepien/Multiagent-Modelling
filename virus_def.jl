@@ -147,7 +147,7 @@ function go(;dim = 20,
         vaccine = false
         days_sick = 0
         was_sick = true
-        disease_duration = floor(Int, default_duration*(1-vaccine_power*vaccine*(1/sick))*(1-immunity))
+        disease_duration = floor(Int, default_duration*(1-vaccine_power*vaccine*(2/sick))*(1-immunity))
 
         agent = Agent(location,
                       sick,
