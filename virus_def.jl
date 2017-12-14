@@ -184,3 +184,103 @@ function go(;dim = 20,
     end
     return infected
 end
+
+
+function go2(;dim = 20,
+             max_iter = 75,
+             n_agents = 100,
+             pct_sick = 0.1,
+             vaccine_power=0.3,
+             mutation_chance = 0.05,
+             vaccine_desire = 0.10,
+             default_duration = 20)
+    # create map and list of agents
+    map = zeros(dim, dim)
+    loc_x = 1:dim
+    loc_y = 1:dim
+    agents = Any[]
+    n_healthy = floor(n_agents*(1-pct_sick))
+    n_sick = ceil(n_agents*pct_sick)
+
+    # spawn agents
+    for n in 1:n_healthy
+        x = rand(loc_x)
+        y = rand(loc_y)
+        while map[x, y] != 0
+            x = rand(loc_x)
+            y = rand(loc_y)
+        end
+        # AGENT IS BORN HERE - HEALTHY
+        location = (x,y)
+        sick = 1
+        immunity = rand(Float64)
+        if rand(Float64) < vaccine_desire
+            vaccine = true
+        else
+            vaccine = false
+        end
+        days_sick = 0
+        was_sick = false
+        disease_duration = floor(Int, default_duration*(1-vaccine_power*vaccine*(2/sick))*(1-immunity))
+
+        agent = Agent(location,
+                      sick,
+                      immunity,
+                      vaccine,
+                      days_sick,
+                      was_sick,
+                      disease_duration)
+        agents = vcat(agents,agent)
+        map[x,y] = agent.sick
+    end
+    for n in 1:n_sick
+        x = rand(loc_x)
+        y = rand(loc_y)
+        while map[x, y] != 0
+            x = rand(loc_x)
+            y = rand(loc_y)
+        end
+        # AGENT IS BORN HERE - SICK
+        location = (x,y)
+        sick = 2
+        immunity = 0.3
+        vaccine = false
+        days_sick = 0
+        was_sick = true
+        disease_duration = floor(Int, default_duration*(1-vaccine_power*vaccine*(2/sick))*(1-immunity))
+
+        agent = Agent(location,
+                      sick,
+                      immunity,
+                      vaccine,
+                      days_sick,
+                      was_sick,
+                      disease_duration)
+        agents = vcat(agents,agent)
+        map[x,y] = agent.sick
+    end
+
+    # move agents
+    iteration = 1
+    infected = 0 # keep track of people who got sick during simulation
+    while iteration <= max_iter
+        for agent in shuffle!(agents)
+            agent.sick == 1 && !agent.was_sick &&
+                get_sick(agent, map, vaccine_power, mutation_chance) && (infected += 1)
+            agent.sick > 1 && get_well(agent, map)
+            move(agent, map)
+        end
+
+        # save a plot of the map
+        # ioff()
+        # fig = figure()
+        # imshow(map)
+        # set_cmap("hot")
+        # savefig("plots\\$(iteration).png")
+        # close(fig)
+
+        # println(iteration,'\t' ,infected)
+        iteration += 1
+    end
+    return infected
+end
